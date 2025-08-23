@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hello World, 26</title>
+  <style>
+    body {
+      margin: 0;
+      background: radial-gradient(ellipse at center, #000 0%, #020d1f 100%);
+      overflow: hidden;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    h1 {
+      margin-top: 40px;
+      font-size: 3em;
+      color: #fff;
+      letter-spacing: 4px;
+    }
+    #canvas {
+      display: block;
+      margin: 0 auto;
+      background: transparent;
+    }
+    #revealBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1.2em;
+      border: none;
+      border-radius: 10px;
+      background: #1e90ff;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    #revealBtn:hover {
+      background: #4682b4;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.9);
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 300px;
+      text-align: center;
+    }
+    .modal button {
+      margin-top: 10px;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      background: #1e90ff;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Happy Birthday</h1>
+  <canvas id="canvas" width="800" height="400"></canvas>
+  <button id="revealBtn">Unlock all the dot 🎂</button>
+
+  <!-- Popup Modal -->
+  <div id="modal" class="modal">
+    <p id="riddle">Riddle text...</p>
+    <button id="answerBtn">✨ Reveal</button>
+    <p id="answer" style="display:none;"></p>
+    <button id="closeBtn">💫 Vanish</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    // ====== 星星的坐标（排成 IRFAN） ======
+    const stars = [
+      // I
+      {x:50,y:100,id:0,letter:"I"},{x:50,y:140,id:1,letter:"I"},{x:50,y:180,id:2,letter:"I"},
+      // R
+      {x:120,y:100,id:3,letter:"R"},{x:120,y:140,id:4,letter:"R"},{x:120,y:180,id:5,letter:"R"},
+      {x:160,y:100,id:6,letter:"R"},{x:160,y:140,id:7,letter:"R"},{x:160,y:180,id:8,letter:"R"},{x:140,y:160,id:9,letter:"R"},
+      // F
+      {x:220,y:100,id:10,letter:"F"},{x:220,y:140,id:11,letter:"F"},{x:220,y:180,id:12,letter:"F"},
+      {x:260,y:100,id:13,letter:"F"},{x:260,y:140,id:14,letter:"F"},
+      // A
+      {x:320,y:100,id:15,letter:"A"},{x:300,y:180,id:16,letter:"A"},{x:340,y:180,id:17,letter:"A"},
+      {x:310,y:140,id:18,letter:"A"},{x:330,y:140,id:19,letter:"A"},
+      // N
+      {x:400,y:100,id:20,letter:"N"},{x:400,y:140,id:21,letter:"N"},{x:400,y:180,id:22,letter:"N"},
+      {x:440,y:100,id:23,letter:"N"},{x:440,y:140,id:24,letter:"N"},{x:440,y:180,id:25,letter:"N"}
+    ];
+
+    // 颜色对应字母
+    const colors = {
+      "I":"#FFD700", // 金黄
+      "R":"#FFA500", // 橙色
+      "F":"#32CD32", // 绿色
+      "A":"#1E90FF", // 蓝色
+      "N":"#8A2BE2"  // 紫色
+    };
+
+    // 谜语 & 答案
+    const riddles = [
+      {r:"What shines but is not the sun?",a:"Your smile, Irfan."},
+      {r:"What grows older but still feels young?",a:"You at 26."},
+      {r:"What brings calm without words?",a:"Your presence."},
+      {r:"What travels without moving?",a:"Your thoughts."},
+      {r:"What is invisible but always felt?",a:"Your kindness."},
+      {r:"What cannot be counted, but is always remembered?",a:"The moments with you."},
+      {r:"What makes silence feel less empty?",a:"You, simply being there."},
+      {r:"What's brighter than a star tonight?",a:"You, birthday boy."},
+      {r:"A star that never fades even when the night is darkest?",a:"Your persistence."},
+      {r:"The way you light up others' days without realizing it.",a:"Your kindness."},
+      {r:"A quiet strength, like a lighthouse guiding without asking for thanks.",a:"That's you."},
+      {r:"The courage that makes 26 a new beginning, not just another year.",a:"Your new chapter, 26."},
+      {r:"Some birthdays are just days.",a:"Yours feels different."},
+      {r:"If constellations had names.",a:"One would be Irfan."},
+      {r:"Even when paths bend, some lights always remain in sight.",a:"Like you."},
+      {r:"Not every star is visible all the time, but they are always there.",a:"A true connection."},
+      {r:"Some people mark years, you mark moments.",a:"You, unforgettable."},
+      {r:"Some stars guide.",a:"You don't even notice when you do."},
+      {r:"What makes distance feel less far?",a:"Thinking of the moment together."},
+      {r:"26 wishes are not enough, because you mean more than numbers.",a:"You're important to me."},
+      {r:"To be remembered is rare, to be cherished is rarer.",a:"You are both."},
+      {r:"Some birthdays are just days, but yours feels like a constellation.",a:"Because it's you."},
+      {r:"May this year bring you the same warmth you unknowingly give.",a:"A blessing for you."},
+      {r:"No matter the distance, this star will always be here.",a:"So will I, never not here."},
+      {r:"Happy 26th Birthday, Irfan",a:"In every sky, there will always be a star that remembers you."},
+      {r:"May you always feel seen, valued, and celebrated today and every day.",a:"I pray to God everyday that you stay healthy and happy every day, Irfan."}
+
+    ];
+
+    // 绘制星星
+    function drawStars() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      stars.forEach(star=>{
+        ctx.beginPath();
+        ctx.arc(star.x,star.y,4,0,Math.PI*2);
+        ctx.fillStyle=colors[star.letter];
+        ctx.fill();
+      });
+    }
+
+    // 绘制连线
+    let revealed=false;
+    function drawLines(){
+      // I
+      ctx.strokeStyle=colors["I"];
+      ctx.beginPath();ctx.moveTo(50,100);ctx.lineTo(50,180);ctx.stroke();
+
+      // R
+      ctx.strokeStyle=colors["R"];
+      ctx.beginPath();
+      ctx.moveTo(120,100);ctx.lineTo(120,180);
+      ctx.moveTo(120,100);ctx.lineTo(160,100);
+      ctx.lineTo(160,140);ctx.lineTo(120,140);
+      ctx.moveTo(120,140);ctx.lineTo(160,180);
+      ctx.stroke();
+
+      // F
+      ctx.strokeStyle=colors["F"];
+      ctx.beginPath();
+      ctx.moveTo(220,100);ctx.lineTo(220,180);
+      ctx.moveTo(220,100);ctx.lineTo(260,100);
+      ctx.moveTo(220,140);ctx.lineTo(260,140);
+      ctx.stroke();
+
+      // A
+      ctx.strokeStyle=colors["A"];
+      ctx.beginPath();
+      ctx.moveTo(300,180);ctx.lineTo(320,100);ctx.lineTo(340,180);
+      ctx.moveTo(310,140);ctx.lineTo(330,140);
+      ctx.stroke();
+
+      // N
+      ctx.strokeStyle=colors["N"];
+      ctx.beginPath();
+      ctx.moveTo(400,100);ctx.lineTo(400,180);
+      ctx.moveTo(400,100);ctx.lineTo(440,180);
+      ctx.moveTo(440,100);ctx.lineTo(440,180);
+      ctx.stroke();
+
+      // ====== 在右边显示圆形头像 ======
+      const img = new Image();
+      img.src = "irfan.jpg"; // 照片文件路径
+      img.onload = () => {
+        const radius = 60;
+        const centerX = 600; // 调整位置到 IRFAN 右边
+        const centerY = 150;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
+        ctx.closePath();
+        ctx.clip();
+
+        ctx.drawImage(img, centerX - radius, centerY - radius, radius*2, radius*2);
+
+        ctx.restore();
+
+        // 白色边框
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
+        ctx.stroke();
+      };
+    }
+
+    drawStars();
+
+    // 点击星星事件
+    canvas.addEventListener("click",function(e){
+      const rect=canvas.getBoundingClientRect();
+      const mx=e.clientX-rect.left,my=e.clientY-rect.top;
+      stars.forEach(star=>{
+        if(Math.hypot(mx-star.x,my-star.y)<6){
+          showModal(star.id);
+        }
+      });
+    });
+
+    // Modal
+    const modal=document.getElementById("modal");
+    const riddleEl=document.getElementById("riddle");
+    const answerEl=document.getElementById("answer");
+    const answerBtn=document.getElementById("answerBtn");
+    const closeBtn=document.getElementById("closeBtn");
+    function showModal(id){
+      const r=riddles[id%riddles.length];
+      riddleEl.textContent=r.r;
+      answerEl.textContent=r.a;
+      answerEl.style.display="none";
+      modal.style.display="block";
+      answerBtn.onclick=()=>{answerEl.style.display="block";};
+      closeBtn.onclick=()=>{modal.style.display="none";};
+    }
+
+    // Reveal button
+    document.getElementById("revealBtn").addEventListener("click",()=>{
+      if(!revealed){drawStars();drawLines();revealed=true;}
+    });
+  </script>
+</body>
+</html>
